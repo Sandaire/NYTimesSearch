@@ -40,6 +40,8 @@
         android:layout_height="50dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
+        android:background="@null"
+        android:src="@mipmap/ic_launcher"
         android:layout_alignTop="@+id/etQuery"
         android:onClick="onArticleSearch"
         android:text="@string/search"/>

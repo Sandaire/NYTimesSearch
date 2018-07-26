@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -16,11 +17,16 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.support.v7.widget.SearchView;
 import android.widget.Toast;
+
+import android.app.SearchManager;
+import android.widget.SearchView.OnQueryTextListener;
 
 import com.example.sandynasandaire.nytimessearch.Article;
 import com.example.sandynasandaire.nytimessearch.ArticleArrayAdapter;
 import com.example.sandynasandaire.nytimessearch.R;
+import com.example.sandynasandaire.nytimessearch.SettingsActivity;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -41,6 +47,15 @@ public class SearchActivity extends AppCompatActivity {
     GridView gvResults;
     ImageButton btnSearch;
 
+    String search;
+    int page=0;
+    private MenuItem searchAction, settingsAction;
+    private SearchView searchView;
+
+    String searchQuery;
+    int searchPage;
+
+
     ArrayList<Article> articles;
     ArticleArrayAdapter adapter;
 
@@ -55,8 +70,10 @@ public class SearchActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        //.setAction("Action", null).show();
+                Intent i = new Intent(getApplicationContext(), SettingsActivity.class );
+                startActivity(i);
             }
         });
 
@@ -93,6 +110,28 @@ public class SearchActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
+        //searchAction = menu.findItem(R.id.action_search);
+        //settingsAction = menu.findItem(R.id.action_settings);
+
+        MenuItem mSearch = menu.findItem(R.id.action_search);
+        SearchView mSearchView = (SearchView) mSearch.getActionView();
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchQuery = query;
+                onArticleSearch(true);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
         return true;
     }
 
@@ -104,14 +143,15 @@ public class SearchActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
+
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void onArticleSearch(View view) {
+    public void onArticleSearch(final Boolean clear) {
         String query = etQuery.getText().toString();
 
         // Toast.makeText(this, "Searching for" + query, Toast.LENGTH_LONG).show();
@@ -120,8 +160,8 @@ public class SearchActivity extends AppCompatActivity {
 
         RequestParams params = new RequestParams();
         params.put("api-key", "6c427bd76a1c4c328664480451f42974");
-        params.put("page", 0);
-        params.put("q", query);
+        params.put("page", searchPage);
+        params.put("q", searchQuery);
 
         client.get(url, params, new JsonHttpResponseHandler() {
 
